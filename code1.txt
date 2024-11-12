@@ -1,0 +1,14 @@
+VAR x, y;
+BEGIN
+    const x := 15;
+    x := 15;
+    y := 20;
+    IF x >= y THEN
+        BEGIN
+            WRITE(x is greater than or equal to y);
+        END
+    ELSE
+        BEGIN
+            WRITE(x is less than y);
+        END
+END.

@@ -1,0 +1,22 @@
+const m = 5;
+var n, result;
+var arry(1:5);
+procedure factorial;{123}
+var i;
+begin
+    result := 1;
+    i := n;
+    while i > 0 do
+    begin
+        result := result * i;
+        i := i - 1
+    end
+end;
+
+begin
+    n := m;
+    arry(1) := 5;
+    arry(arry(1)) := 5;
+    call factorial;
+    result;
+end.

@@ -1,14 +1,118 @@
 词法分析的结果为：
+Error in line1!
 (1,begin)
-(39,arry(1:2))
+Error in line1!
+(38,,)
+Error in line1!
+(2,do)
+Error in line1!
+(38,,)
+Error in line1!
+(3,else)
+Error in line1!
+(38,,)
+Error in line1!
+(4,end)
+Error in line1!
+(38,,)
+Error in line1!
+(5,if)
+Error in line1!
+(38,,)
+Error in line1!
+(6,repeat)
+Error in line1!
+(38,,)
+Error in line1!
+(7,then)
+Error in line1!
+(38,,)
+Error in line1!
+(8,until)
+Error in line1!
+(38,,)
+Error in line1!
+(9,while)
+Error in line1!
+Error in line1!
 (35,;)
-(39,a(1))
+Error in line2!
+(11,call)
+Error in line2!
+(38,,)
+Error in line2!
+(12,const)
+Error in line2!
+(38,,)
+Error in line2!
+(13,procedure)
+Error in line2!
+(38,,)
+Error in line2!
+(14,var)
+Error in line2!
+Error in line2!
 (35,;)
-(39,a(a(1)))
+Error in line3!
+(16,read)
+Error in line3!
+(38,,)
+Error in line3!
+(17,write)
+Error in line3!
+Error in line3!
 (35,;)
-(39,a(1:a))
-(35,;)
-(39,b(c+b(2)))
-(35,;)
-(7,end)
+(20,op)
+(26,-)
+(20,cvbno545)
+Error in line3!
+(20,cuda)
+Error in line3!
+(20,vp)
+Error in line3!
+Error in line3!
+Error in line3!
+Error in line3!
+Error in line3!
+Error in line3!
+(20,p)
+Error in line3!
+Error in line3!
+(20,z)
+Error in line3!
+Error in line3!
+Error in line3!
+(20,p)
+Error in line3!
+Error in line3!
+Error in line3!
+(20,z)
+Error in line3!
+Error in line3!
+Error in line3!
+(20,revision)
+(34,=)
+(21,5000)
+Error in line3!
+(20,commonprogramw6=)
+(34,=)
+(20,c)
+(28,:)
+Error in line3!
+(20,program)
+(20,files)
+Error in line3!
+(20,common)
+(20,files)
+Error in line3!
+(20,comspec)
+(34,=)
+(20,c)
+(28,:)
+Error in line3!
+(20,windows)
+Error in line3!
+(20,system32)
+Error in line3!
+(20,cmd)
 (0,.)

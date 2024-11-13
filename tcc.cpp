@@ -5,8 +5,10 @@
 
 using namespace std;
 
-#define CODE "code2.txt"
-#define RESULT "result.txt"
+char CODE[]= "code2.txt";
+char RESULT[]= "result.txt";
+//#define CODE "code2.txt"
+//#define RESULT "result.txt"
 
 //token数组用来接收关键字，变量，运算符和界符
 //这里限制变量名的长度最多为14
@@ -16,9 +18,26 @@ char ch;
 //syn是各个单词符号对应的数字
 int syn, p, m = 0, n, line, sum = 0;
 //keyword数组存储的是关键字
-char *keyword1[10] = { "begin","if","then","else","while","do","end","repeat","until" };
-char *keyword2[4] = { "const","var","procedure","call" };
-char *keyword3[2] = { "write","read" };
+char *keyword1[9] = { "begin","do","else","end","if","repeat","then","until","while" };
+char *keyword2[4] = { "call","const","procedure","var"};
+char *keyword3[2] = { "read","write" };
+int binarySearch(char *arr[], int size, char *target) {
+    int left = 0;
+    int right = size;
+
+    while (left < right) {
+        int mid = (left + right) >>1;
+        int cmp = strcmp(arr[mid], target);
+        if (cmp == 0) {
+            return mid;
+        } else if (cmp < 0) {
+            left = mid + 1;
+        } else {
+            right = mid;
+        }
+    }
+    return -1;
+}
 void arry()
 {
     if(ch=='(')
@@ -85,27 +104,20 @@ void scaner()//状态分析模块
 		syn = 20;
 
 		//将识别出来的字符和已定义的标示符作比较， 判断是否是关键字，所有关键字都是小写
-		for (n = 0; n<9; n++)
-			if (strcmp(token, keyword1[n]) == 0)
-			{
-				syn = n + 1;
-				break;
-			}
-		for (n = 0; n < 4;n++)
-		{
-			if (strcmp(token, keyword2[n]) == 0)
-			{
-				syn = n + 11;
-				break;
-			}
-		}
-        for (n = 0; n < 2;n++)
+        int temp1=binarySearch(keyword1,9,token);
+        int temp2=binarySearch(keyword2,6,token);
+        int temp3=binarySearch(keyword3,2,token);
+        if(temp1!=-1)
         {
-            if (strcmp(token, keyword3[n]) == 0)
-            {
-                syn = n + 16;
-                break;
-            }
+            syn = temp1 + 1;
+        }
+        if(temp2!=-1)
+        {
+            syn = temp2 + 11;
+        }
+        if(temp3!=-1)
+        {
+            syn = temp3 + 16;
         }
         //识别数组
         if(ch=='(')
@@ -269,20 +281,25 @@ void read()//读取源代码文件(.txt)
 	fseek(fp, 0, SEEK_SET);//将文件指针挪到文件开头来读取文件
 	prog = (char *)malloc(file_size * sizeof(char));
 	fread(prog, file_size, sizeof(char), fp);
-
 	//关闭文件流
 	fclose(fp);
 	cout<<"close success";
 }
 
-int main()
+int main(int argc, char *argv[])
 {
+    if(argv[1]!=nullptr)
+    {
+        strcpy(CODE,argv[1]);
+    }
+    if(argv[2]!=nullptr)
+    {
+        strcpy(RESULT,argv[2]);
+    }
 	line = 1;
 	ofstream outfile(RESULT);
-
 	cout<< "加载代码文件中......" << endl;
 	read();
-
 	p = 0;
 	outfile << "词法分析的结果为：" << endl;
 	do//标记识别模块
@@ -307,6 +324,6 @@ int main()
 		}
 	} while (syn != 0);
 	outfile.close();
-	cout << "词法分析完毕，请在result.txt中查看" << endl;
+	cout << "词法分析完毕，请在"<<RESULT<<"中查看" << endl;
 	return 0;
 }

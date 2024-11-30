@@ -129,6 +129,13 @@ void Lexer::Tokenizer()
 			PlusLine();
 			continue;
 		}
+		else if(nowChar == '{'){
+			while (in.peek() != EOF && nowChar != '}')
+				in.get(nowChar);
+			if (in.peek() == EOF)
+				printError(9, line);
+			continue;
+		}
 		else if (isspace(nowChar)) {
 			continue;
 		}

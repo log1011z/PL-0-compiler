@@ -12,6 +12,7 @@ Parse::Parse() :look(0){}
 Parse::Parse(std::string FileName) :lex(FileName), look(0)
 {
 	lex.Tokenizer();
+	lex.PrintList();
 }
 
 Parse::~Parse(){}
@@ -73,6 +74,32 @@ void Parse::decls()
 			numOfVarDecl++;
 
 			move();
+
+
+			//arry
+			if(look->GetTag() == LPARENTSYM){
+				move();
+				if(look->GetTag() != NUMBERSYM)
+					printError(2, look->GetLine());
+				 int lowerBound = atoi(look->GetLexeme().c_str());
+				move();
+				if(look->GetTag() != COLONSYM)
+					printError(30, look->GetLine());
+				move();
+				if(look->GetTag() != NUMBERSYM)
+					printError(2, look->GetLine());
+				int upperBound = atoi(look->GetLexeme().c_str());
+				move();
+				if(look->GetTag() != RPARENTSYM)
+					printError(22, look->GetLine());
+				if (lowerBound > upperBound) {
+                printError(36, look->GetLine());  // 数组上下界非法
+            }
+				move();
+			}
+
+			//arry end
+
 			if (look->GetTag() == SEMICOLOMSYM)
 				break;
 			else if (look->GetTag() == COMMASYM)

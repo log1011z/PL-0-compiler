@@ -1,0 +1,13 @@
+var x,y,a(1:7);
+begin
+    x := 15;
+    y := 20;
+    if x >= y then
+        begin
+            write(x);
+        end
+    else
+        begin
+            write(y);
+        end
+end.

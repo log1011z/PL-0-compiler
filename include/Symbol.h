@@ -3,7 +3,7 @@
 
 #include "Token.h"
 
-const int SymbolNum = 16;
+const int SymbolNum = 17;
 extern const std::string SymbolTable[];
 
 class Symbol : public Token

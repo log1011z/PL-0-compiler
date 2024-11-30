@@ -11,14 +11,49 @@ Lexer::Lexer() : line(1) {}
 
 Lexer::Lexer(std::string FileName) : line(1)
 {
+	// 读取文件内容并将其转换为小写
+        std::ifstream input(FileName);
+        if (!input) {
+            std::cerr << "error: unable to open input file -- "
+                      << FileName
+                      << std::endl;
+            exit(0);
+        }
+
+        std::string tempFileName = FileName + ".tmp"; // 临时文件
+        std::ofstream output(tempFileName);
+        if (!output) {
+            std::cerr << "error: unable to create temporary file -- "
+                      << tempFileName
+                      << std::endl;
+            exit(0);
+        }
+
+        char ch;
+        while (input.get(ch)) {
+            output.put(std::tolower(static_cast<unsigned char>(ch))); // 转为小写
+        }
+
+        input.close();
+        output.close();
+
+        // 将临时文件重命名为原文件（覆盖原文件）
+        if (std::rename(tempFileName.c_str(), FileName.c_str()) != 0) {
+            std::cerr << "error: unable to overwrite the original file -- "
+                      << FileName
+                      << std::endl;
+            exit(0);
+        }
+
 	const char* FileN = FileName.c_str();
-	in.open(FileN);
+	   in.open(FileN);
 	if (!in){
 		std::cerr << "error: unable to open input file -- "
 				  << FileN 
 				  << std::endl;
 		exit(0);
 	}
+	
 }
 
 Lexer::~Lexer()
@@ -59,7 +94,7 @@ void Lexer::Tokenizer()
 				return;
 			}
 			in.get(nowChar);
-		} while (isalnum(nowChar));
+		} while (isalnum(nowChar ));
 		in.putback(nowChar);
 		p = new Word(s, line);
 	};

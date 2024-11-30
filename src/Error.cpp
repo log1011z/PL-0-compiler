@@ -56,6 +56,8 @@ const std::string parseErrors[] = {
 	/* 33  */ "Empty file.",
 	/* 34  */ "Unacceptale token in front of a statement.",
 	/* 35  */ "Read a procedure is meaningless."
+	/* 36  */ "The arry bound is illegal "//数组上下界非法
+
 };
 
 void printError(int errorId, int line)

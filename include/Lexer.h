@@ -20,7 +20,7 @@ public:
 	void PutToken(Token*& p);
 	void PlusLine();
 private:
-	std::fstream in;
+	std::ifstream in;
 	std::list<Token*> TokenList;
 	int line;
 private:

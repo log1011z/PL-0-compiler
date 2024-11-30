@@ -23,6 +23,7 @@ enum Tag
 	SEMICOLOMSYM,   // ;
 	PERIODSYM,      // .
 	BECOMESSYM,     // :=
+	COLONSYM,       // :
 	BEGINSYM,       // begin
 	ENDSYM,         // end
 	IFSYM,          // if

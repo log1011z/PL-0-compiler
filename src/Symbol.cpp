@@ -51,6 +51,7 @@ Tag Symbol::GetSymbolTag(int t)
 	else if (t == 13)		return SEMICOLOMSYM;
 	else if (t == 14)		return PERIODSYM;
 	else if (t == 15)		return BECOMESSYM;
+	else if (t == 16)		return COLONSYM;
 	else					return BADTOKEN;
 }
 
@@ -59,5 +60,5 @@ const std::string SymbolTable[] =
 	"+",	"-",	"*",	"/",
 	"=",	"<>",	"<",	"<=",
 	">",	">=",	"(",	")",
-	",",	";",	".",	":="
+	",",	";",	".",	":=",":"
 };

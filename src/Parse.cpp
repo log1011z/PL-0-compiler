@@ -9,13 +9,20 @@
 
 Parse::Parse() :look(0){}
 
-Parse::Parse(std::string FileName) :lex(FileName), look(0)
+Parse::Parse(std::string FileName) :lex(FileName), look(0),root(nullptr)
 {
 	lex.Tokenizer();
-	lex.PrintList();
+	//lex.PrintList();
 }
 
-Parse::~Parse(){}
+Parse::~Parse(){
+	delete root;
+}
+
+
+
+
+
 
 void Parse::move()
 {
@@ -32,6 +39,21 @@ void Parse::GrammerAnalyzier()
 	program();
 	//icode.printCode();
 	//std::cout << "Over!" << std::endl;
+}
+
+
+
+void Parse::printParseTree(ParseTreeNode* node, int depth) {
+    if (!node) return;
+    for (int i = 0; i < depth; ++i) std::cout << "  ";
+    std::cout << node->type << ": " << node->value << std::endl;
+    for (auto child : node->children) {
+        printParseTree(child, depth + 1);
+    }
+}
+
+void Parse::printTree() {
+    printParseTree(root);
 }
 
 ObjCode& Parse::getCode()
@@ -67,7 +89,7 @@ void Parse::decls()
 				printError(4, look->GetLine());
 			if (ident.id.find(look->GetLexeme()) != ident.id.end())
 				printError(29, look->GetLine());
-
+			std::string name=look->GetLexeme();
 			ident.id[look->GetLexeme()] = Id(VAR,
 											 ident.currentLevel, 
 											 ident.currM[ident.currentLevel]++);
@@ -95,6 +117,8 @@ void Parse::decls()
 				if (lowerBound > upperBound) {
                 printError(36, look->GetLine());  // 数组上下界非法
             }
+			 ident.id[name] = Id(ARRAY, ident.currentLevel, ident.currM[ident.currentLevel]++, upperBound - lowerBound + 1);
+				std::cout<<name<<" "<<ident.id[name].kind <<std::endl;
 				move();
 			}
 
@@ -197,9 +221,25 @@ void Parse::stmts()
 	case IDENTSYM://assign
 		if (ident.id.find(look->GetLexeme()) == ident.id.end())
 			printError(11, look->GetLine());
-		if (ident.id[look->GetLexeme()].kind != VAR)
+		if (ident.id[look->GetLexeme()].kind != VAR&&ident.id[look->GetLexeme()].kind != ARRAY)
 			printError(12, look->GetLine());
-		tmp = look->GetLexeme();
+		if(ident.id[look->GetLexeme()].kind == ARRAY)
+		{
+			move();
+			if (look->GetTag() == LPARENTSYM) {
+				move();
+				if (look->GetTag() == NUMBERSYM || look->GetTag() == IDENTSYM) {
+					move();
+					if(look->GetTag() != RPARENTSYM)
+					printError(22, look->GetLine());
+				} else {
+					printError(2, look->GetLine());
+				}
+			}
+			
+		}
+		if(ident.id[look->GetLexeme()].kind == VAR)
+			tmp = look->GetLexeme();
 		
 		move();
 		if (look->GetTag() != BECOMESSYM)
@@ -395,6 +435,82 @@ void Parse::factor()
 		icode.emitCode(LOD,
 					   abs(ident.id[look->GetLexeme()].level - ident.currentLevel),
 					   ident.id[look->GetLexeme()].addr);
+	if (look->GetTag() == IDENTSYM && ident.id[look->GetLexeme()].kind == ARRAY)
+	{
+		arry();
+		// icode.emitCode(LOD,
+		// 			   abs(ident.id[look->GetLexeme()].level - ident.currentLevel),//SHUZU HAIMEIGAI
+		// 			   ident.id[look->GetLexeme()].addr);
+	}
+		
 	if (look->GetTag() == NUMBERSYM)
 		icode.emitCode(LIT,0,atoi(look->GetLexeme().c_str()));
 }
+
+// void Parse::factor()
+// {
+//     if (look->GetTag() == LPARENTSYM) {
+//         move();
+//         expr();
+//         if (look->GetTag() != RPARENTSYM)
+//             printError(22, look->GetLine());
+//         move();
+//     } else {
+//         if (look->GetTag() == IDENTSYM) {
+//             std::string identName = look->GetLexeme();
+//             move();
+
+//             // 检查是否为数组引用
+//             if (look->GetTag() == LPARENTSYM) {
+//                 move();
+//                 // 支持嵌套引用
+//                 if (look->GetTag() == NUMBERSYM) {
+//                     move();
+//                 } else if (look->GetTag() == IDENTSYM) {
+//                     std::string nestedIdentName = look->GetLexeme();
+//                     move();
+//                     if (look->GetTag() == LPARENTSYM) {
+//                         move();
+//                         if (look->GetTag() == NUMBERSYM) {
+//                             move();
+//                             if (look->GetTag() != RPARENTSYM) {
+//                                 printError(31, look->GetLine());
+//                             }
+//                             move();
+//                         } else {
+//                             printError(2, look->GetLine());
+//                         }
+//                     } else {
+//                         move();
+//                     }
+//                 } else {
+//                     printError(2, look->GetLine());
+//                 }
+
+//                 if (look->GetTag() != RPARENTSYM) {
+//                     printError(31, look->GetLine());
+//                 }
+//                 move();
+//             }
+//         } else if (look->GetTag() == NUMBERSYM) {
+//             move();
+//         } else {
+//             printError(23, look->GetLine());
+//         }
+//     }
+// }
+
+void Parse::arry() {
+			if (look->GetTag() == LPARENTSYM) {
+				move();
+				if (look->GetTag() == NUMBERSYM || look->GetTag() == IDENTSYM) {
+					move();
+					if(look->GetTag() == RPARENTSYM)
+						move();
+					else
+						printError(22, look->GetLine());
+				} else {
+					printError(2, look->GetLine());
+				}
+			}
+		}

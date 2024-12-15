@@ -5,17 +5,18 @@
 #include <map>
 #include <string>
 
-enum KIND {VAR = 1, CONST, PROC};
+enum KIND {VAR = 1, CONST=2, PROC=3,ARRAY=4};
 
 struct Id
 {
 	Id();
-	Id(KIND, int, int);
+	Id(KIND, int, int,int = 0);
 	Id& operator=(const Id&);
 	KIND kind;
 	int value;
 	int level;
 	int addr;
+	int size;
 };
 
 class Identifier

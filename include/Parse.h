@@ -4,6 +4,7 @@
 #include "Lexer.h"
 #include "ObjCode.h"
 #include "Identifier.h"
+#include "ParseTreeNode.h"
 
 class Token;
 
@@ -23,9 +24,13 @@ public:
 	void expr();
 	void term();
 	void factor();
+	void arry();
 	void GrammerAnalyzier();
 	void PrintTemineCode();
+	int getArrayValue(std::string, int);
 	ObjCode& getCode();
+    void printParseTree(ParseTreeNode* node, int depth = 0);
+    void printTree();
 private:
     Parse(const Parse&)=delete;
     Parse& operator=(const Parse&)=delete;
@@ -33,6 +38,7 @@ private:
 	Token* look;
 	ObjCode icode;
 	Identifier ident;
+	ParseTreeNode* root;
 };
 
 #endif

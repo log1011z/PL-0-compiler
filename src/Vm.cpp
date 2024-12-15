@@ -44,7 +44,7 @@ void Vm::pl0()
 				sp = bp - 1;
 				bp = stack[sp + 1];
 				pc = stack[sp + 2];
-				level[ar--] = -1;	//回到上一层
+				level[ar--] = -1;	
 				break;
 			case OPR_NEG:
 				stack[sp - 1] = -stack[sp - 1];
@@ -117,9 +117,9 @@ void Vm::pl0()
 			level[ar] = sp;	
 			for (int i = (ar - 1); i >= 0; --i){
 				level[ar] -= level[i];
-			}		//得到这个层的指令数
-			++ar;	//调到下一层
-			level[ar] = 3;	//层的大小初始为3
+			}		
+			++ar;	
+			level[ar] = 3;	
 			break;
 		case INC:
 			sp += ir->getM();

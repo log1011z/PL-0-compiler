@@ -2,8 +2,8 @@
 
 Id::Id(){}
 
-Id::Id(KIND _kind, int _level, int _addr) :
-	kind(_kind), level(_level), addr(_addr)
+Id::Id(KIND _kind, int _level, int _addr,int _size) :
+	kind(_kind), level(_level), addr(_addr),size(_size)
 {
 }
 
@@ -13,6 +13,7 @@ Id& Id::operator=(const Id& _id)
 	this->kind = _id.kind;
 	this->level = _id.level;
 	this->addr = _id.addr;
+	this->size = _id.size;
 	return *this;
 }
 

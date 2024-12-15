@@ -4,6 +4,7 @@ begin
     y := 20;
     if x >= y then
         begin
+        a(1) :=1;
             write(x);
         end
     else

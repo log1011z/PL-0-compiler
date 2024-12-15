@@ -8,7 +8,7 @@ CFLAGS = -std=c++11 -I $(INCDIR)
 TARGET = $(BINDIR)/pl0
 
 _OBJS = main.o Parse.o Vm.o Error.o Token.o Code.o Identifier.o \
-	    Lexer.o Symbol.o ObjCode.o Word.o Num.o
+	    Lexer.o Symbol.o ObjCode.o Word.o Num.o ParseTreeNode.o
 
 OBJS = $(patsubst %, $(OBJDIR)/%, $(_OBJS))
 

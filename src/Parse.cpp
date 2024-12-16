@@ -34,6 +34,7 @@ void Parse::GrammerAnalyzier()
 	lex.JudgeError();
 	root = new ParseTreeNode("Program", "");
 	program(root);
+	printSymbolTable();
 	//icode.printCode();
 	//std::cout << "Over!" << std::endl;
 }
@@ -48,6 +49,50 @@ void Parse::printParseTree(ParseTreeNode* node, int depth) {
         printParseTree(child, depth + 1);
     }
 }
+
+void Parse::printSymbolTable() {
+    std::cout << "Symbol Table:" << std::endl;
+    std::cout << "-------------------------------------------" << std::endl;
+    std::cout << "Name\tKind\tLevel\tAddress\tSize\tValue" << std::endl;
+    std::cout << "-------------------------------------------" << std::endl;
+
+    for (const auto& entry : ident.id) {
+        std::cout << entry.first << "\t";  
+
+        switch (entry.second.kind) {
+            case VAR:
+                std::cout << "VAR\t";
+                break;
+            case CONST:
+                std::cout << "CONST\t";
+                break;
+            case PROC:
+                std::cout << "PROC\t";
+                break;
+            case ARRAY:
+                std::cout << "ARRAY\t";
+                break;
+            default:
+                std::cout << "UNKNOWN\t";
+                break;
+        }
+
+        std::cout << entry.second.level << "\t";
+        std::cout << entry.second.addr << "\t";
+        if(entry.second.kind == ARRAY){
+			std::cout << entry.second.size<<"\t";
+		}
+		else
+			std::cout << "\t";
+		if (entry.second.kind == CONST) {
+            std::cout << entry.second.value<<"\t";
+        }
+		
+        std::cout << std::endl;
+    }
+    std::cout << "-------------------------------------------" << std::endl;
+}
+
 
 void Parse::printTree() {
     printParseTree(root);
@@ -131,7 +176,7 @@ void Parse::decls(ParseTreeNode* parent)
 				if (lowerBound > upperBound) {
                 printError(36, look->GetLine());  // 数组上下界非法
             }
-			 ident.id[name] = Id(ARRAY, ident.currentLevel, ident.currM[ident.currentLevel]++, upperBound - lowerBound + 1);
+			 ident.id[name] = Id(ARRAY, ident.currentLevel, ident.currM[ident.currentLevel]-1, upperBound - lowerBound + 1);
 				move();
 			}
 
@@ -238,42 +283,42 @@ void Parse::stmts(ParseTreeNode* parent)
 	std::string tmp;
 	int tmpIfAdrr1, tmpIfAdrr2;
 	int tmpWhileAdrr1, tmpWhileAdrr2;
+	
 	switch (look->GetTag())
 	{
 	case IDENTSYM://assign
 	{
+		ParseTreeNode* assignNode = new ParseTreeNode("Assign", "");
+            parent->children.push_back(assignNode);
 		if (ident.id.find(look->GetLexeme()) == ident.id.end())
 			printError(11, look->GetLine());
 		if (ident.id[look->GetLexeme()].kind != VAR&&ident.id[look->GetLexeme()].kind != ARRAY)
 			printError(12, look->GetLine());
-		if(ident.id[look->GetLexeme()].kind == ARRAY)
-		{
-			//shuzushibie
-			move();
-			if (look->GetTag() == LPARENTSYM) {
-				move();
-				if(look->GetTag() == NUMBERSYM || look->GetTag() == IDENTSYM) {
-					move();
-					if(look->GetTag() != RPARENTSYM)
-						printError(22, look->GetLine());
-				} else {
-					printError(2, look->GetLine());
-				}
-			}
-			
-		}
 		if(ident.id[look->GetLexeme()].kind == VAR)
 			tmp = look->GetLexeme();
-		
-		ParseTreeNode* assignNode = new ParseTreeNode("Assign", tmp);
-            parent->children.push_back(assignNode);
+		if(ident.id[look->GetLexeme()].kind == ARRAY)
+		{
+			tmp = look->GetLexeme();
+			//shuzushibie
+			move();
+		if (look->GetTag() == LPARENTSYM)
+		{
+			expr(assignNode);
+			
+			move();
+			if (look->GetTag() != RPARENTSYM)
+				printError(22, look->GetLine());
+		}
+		else{
+			printError(24, look->GetLine());
+		}
+		}
+		assignNode->value = tmp;
 		move();
 		if (look->GetTag() != BECOMESSYM)
 			printError(13, look->GetLine());
 		expr(assignNode);
-		icode.emitCode(STO,
-					   abs(ident.id[tmp].level - ident.currentLevel),
-					   ident.id[tmp].addr);
+		icode.emitCode(STO,abs(ident.id[tmp].level - ident.currentLevel), ident.id[tmp].addr);
 		break;
 	}
 	case CALLSYM://call
@@ -376,7 +421,25 @@ void Parse::stmts(ParseTreeNode* parent)
 	{
 		ParseTreeNode* writeNode = new ParseTreeNode("Write", "");
             parent->children.push_back(writeNode);
-            expr(writeNode);
+            move();
+		if (look->GetTag() == LPARENTSYM)
+		{
+			expr(writeNode);
+			while (true){
+				move();
+				if (look->GetTag() == COMMASYM){
+				expr(writeNode);
+			} else {
+				lex.PutToken(look);
+				break;
+			}
+		}
+			move();
+			if (look->GetTag() != RPARENTSYM)
+				printError(22, look->GetLine());
+		}
+		else
+			printError(24, look->GetLine());
 		icode.emitCode(SIO_OUT, 0, 1);
 		break;
 	}
@@ -430,7 +493,7 @@ void Parse::cond(ParseTreeNode* parent)
 
 void Parse::expr(ParseTreeNode* parent)
 {
-	ParseTreeNode* exprNode = new ParseTreeNode("Expression", "");
+	ParseTreeNode* exprNode = new ParseTreeNode("Expression","");
     parent->children.push_back(exprNode);
 	int op;
 	move();
@@ -455,6 +518,8 @@ void Parse::expr(ParseTreeNode* parent)
 		if (op == MINUSYM)
 			icode.emitCode(OPR, 0, OPR_SUB);
 	}
+	
+	
 }
 
 void Parse::term(ParseTreeNode* parent)
@@ -517,8 +582,7 @@ void Parse::factor(ParseTreeNode* parent)
 		// 			   abs(ident.id[look->GetLexeme()].level - ident.currentLevel),//SHUZU HAIMEIGAI
 		// 			   ident.id[look->GetLexeme()].addr);
 	}
-		
+	factorNode->value = tmp;	
 	if (look->GetTag() == NUMBERSYM)
 		icode.emitCode(LIT,0,atoi(look->GetLexeme().c_str()));
-	factorNode->value =tmp;
 }

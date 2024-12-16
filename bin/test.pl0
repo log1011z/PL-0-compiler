@@ -1,14 +1,15 @@
 var x,y,a(1:7);
+const b = 1;
 begin
     x := 15;
     y := 20;
     if x >= y then
         begin
-        a(1) :=1;
-            write(a(1+a(2)));
+        a(1+a(10)) :=1;
+            write(x,a(1));
         end
     else
         begin
-            write(y);
+           write(y);
         end
 end.

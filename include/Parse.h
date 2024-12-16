@@ -30,6 +30,7 @@ public:
 	ObjCode& getCode();
     void printParseTree(ParseTreeNode* node, int depth = 0);
     void printTree();
+	void printSymbolTable();
 private:
     Parse(const Parse&)=delete;
     Parse& operator=(const Parse&)=delete;

@@ -16,15 +16,14 @@ public:
 	~Parse();
 public:
 	void move();
-	void program();
-	void block();
-	void decls();
-	void stmts();
-	void cond();
-	void expr();
-	void term();
-	void factor();
-	void arry();
+	void program(ParseTreeNode* parent);
+    void block(ParseTreeNode* parent);
+    void decls(ParseTreeNode* parent);
+    void stmts(ParseTreeNode* parent);
+    void cond(ParseTreeNode* parent);
+    void expr(ParseTreeNode *parent);
+    void term(ParseTreeNode *parent);
+    void factor(ParseTreeNode *parent);
 	void GrammerAnalyzier();
 	void PrintTemineCode();
 	int getArrayValue(std::string, int);

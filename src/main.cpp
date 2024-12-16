@@ -11,7 +11,7 @@ int main(int argc, char *argv[]){
 		std::string FileName = argv[1];
 		Parse p(FileName);
 		p.GrammerAnalyzier();
-		//p.printTree(); 
+		p.printTree(); 
 		Vm virtualMach(p.getCode());
 		virtualMach.pl0();
 	}

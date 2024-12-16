@@ -20,10 +20,6 @@ Parse::~Parse(){
 }
 
 
-
-
-
-
 void Parse::move()
 {
 	if (look != 0) {
@@ -36,7 +32,8 @@ void Parse::move()
 void Parse::GrammerAnalyzier()
 {
 	lex.JudgeError();
-	program();
+	root = new ParseTreeNode("Program", "");
+	program(root);
 	//icode.printCode();
 	//std::cout << "Over!" << std::endl;
 }
@@ -61,9 +58,11 @@ ObjCode& Parse::getCode()
 	return this->icode;
 }
 
-void Parse::program()
+void Parse::program(ParseTreeNode* parent)
 {
-	block();
+	ParseTreeNode* blockNode = new ParseTreeNode("Block", "");
+    parent->children.push_back(blockNode);
+	block(blockNode);
 	icode.emitCode(OPR, 0, OPR_RET);
 	move();
 	if (look->GetTag() != PERIODSYM){
@@ -71,18 +70,24 @@ void Parse::program()
 	}
 }
 
-void Parse::block()
+void Parse::block(ParseTreeNode* parent)
 {
+	ParseTreeNode* declsNode = new ParseTreeNode("Declarations", "");
+    ParseTreeNode* stmtsNode = new ParseTreeNode("Statements", "");
+    parent->children.push_back(declsNode);
+    parent->children.push_back(stmtsNode);
 	ident.currM[ident.currentLevel] += 3;
 	icode.emitCode(INC, 0, 3);
-	decls();
-	stmts();
+	decls(declsNode);
+	stmts(stmtsNode);
 }
 
-void Parse::decls()
+void Parse::decls(ParseTreeNode* parent)
 {
-	auto vardecl = [&](){ 
+	auto vardecl = [&](ParseTreeNode* parent){ 
 		int numOfVarDecl = 0;
+		ParseTreeNode* varDeclNode = new ParseTreeNode("VarDecl", ""); // 创建变量声明节点
+        parent->children.push_back(varDeclNode);
 		while (true){
 			move();
 			if (look->GetTag() != IDENTSYM)
@@ -94,16 +99,22 @@ void Parse::decls()
 											 ident.currentLevel, 
 											 ident.currM[ident.currentLevel]++);
 			numOfVarDecl++;
-
+			std::string varName = look->GetLexeme();
+            ParseTreeNode* varNode = new ParseTreeNode("Variable",varName); // 为每个变量创建节点
+            varDeclNode->children.push_back(varNode);
 			move();
 
 
 			//arry
 			if(look->GetTag() == LPARENTSYM){
+				varNode->type = "Array";
 				move();
 				if(look->GetTag() != NUMBERSYM)
 					printError(2, look->GetLine());
 				 int lowerBound = atoi(look->GetLexeme().c_str());
+				std::string lower = look->GetLexeme();
+				 ParseTreeNode* lowerBoundNode = new ParseTreeNode("LowerBound", lower);
+                varNode->children.push_back(lowerBoundNode);
 				move();
 				if(look->GetTag() != COLONSYM)
 					printError(30, look->GetLine());
@@ -111,6 +122,9 @@ void Parse::decls()
 				if(look->GetTag() != NUMBERSYM)
 					printError(2, look->GetLine());
 				int upperBound = atoi(look->GetLexeme().c_str());
+				std::string upper = look->GetLexeme();
+                ParseTreeNode* upperBoundNode = new ParseTreeNode("UpperBound", upper);
+                varNode->children.push_back(upperBoundNode);
 				move();
 				if(look->GetTag() != RPARENTSYM)
 					printError(22, look->GetLine());
@@ -133,7 +147,9 @@ void Parse::decls()
 		icode.emitCode(INC, 0, numOfVarDecl);
 	};
 
-	auto condecl = [&](){
+	auto condecl = [&](ParseTreeNode* parent){
+		ParseTreeNode* constDeclNode = new ParseTreeNode("ConstDecl", ""); // 创建常量声明节点
+        parent->children.push_back(constDeclNode);
 		while (true){
 			move();
 			if (look->GetTag() != IDENTSYM)
@@ -141,7 +157,8 @@ void Parse::decls()
 			if (ident.id.find(look->GetLexeme()) != ident.id.end())
 				printError(29, look->GetLine());
 			std::string idName = look->GetLexeme();
-
+            ParseTreeNode* constNode = new ParseTreeNode("Constant", idName); // 常量节点
+            constDeclNode->children.push_back(constNode);
 			move();
 			if (look->GetTag() == BECOMESSYM)
 				printError(1, look->GetLine());
@@ -153,7 +170,8 @@ void Parse::decls()
 				printError(2, look->GetLine());
 			ident.id[idName].kind = CONST;
 			ident.id[idName].value = atoi(look->GetLexeme().c_str());
-
+			ParseTreeNode* constValue = new ParseTreeNode("Value", look->GetLexeme());
+            constNode->children.push_back(constValue);
 			move();
 			if (look->GetTag() == COMMASYM)
 				continue;
@@ -164,8 +182,10 @@ void Parse::decls()
 		}
 	};
 
-	auto procdecl = [&](){ 
+	auto procdecl = [&](ParseTreeNode* parent){ 
 		while (true){
+			ParseTreeNode* procNode = new ParseTreeNode("Procedure", "");
+            parent->children.push_back(procNode);
 			move();
 			if (look->GetTag() != IDENTSYM)
 				printError(4, look->GetLine());
@@ -176,11 +196,14 @@ void Parse::decls()
 											 icode.size() + 1);
 			int tmpAdrr1 = icode.size();
 			icode.emitCode(JMP, 0, 0);
-			
+			std::string procName = look->GetLexeme();
+            procNode->value = procName;
 			move();
 			if (look->GetTag() != SEMICOLOMSYM)
 				printError(5, look->GetLine());
-			block();
+			ParseTreeNode* blockNode = new ParseTreeNode("Block", "");
+            procNode->children.push_back(blockNode);
+			block(blockNode);
 			icode.emitCode(OPR, 0, OPR_RET);
 			ident.currentLevel--;
 			icode.changeAdrr(tmpAdrr1, icode.size());
@@ -201,15 +224,15 @@ void Parse::decls()
 
 	move();
 	switch (look->GetTag()){
-	case VARSYM:	vardecl();				break;
-	case CONSTSYM:	condecl();				break;
-	case PROCSYM:	procdecl();				break;
+	case VARSYM:	vardecl(parent);				break;
+	case CONSTSYM:	condecl(parent);				break;
+	case PROCSYM:	procdecl(parent);				break;
 	default:		lex.PutToken(look);		return;
 	}
-	decls();
+	decls(parent);
 }
 
-void Parse::stmts()
+void Parse::stmts(ParseTreeNode* parent)
 {
 	move();
 	std::string tmp;
@@ -242,10 +265,12 @@ void Parse::stmts()
 		if(ident.id[look->GetLexeme()].kind == VAR)
 			tmp = look->GetLexeme();
 		
+		ParseTreeNode* assignNode = new ParseTreeNode("Assign", tmp);
+            parent->children.push_back(assignNode);
 		move();
 		if (look->GetTag() != BECOMESSYM)
 			printError(13, look->GetLine());
-		expr();
+		expr(assignNode);
 		icode.emitCode(STO,
 					   abs(ident.id[tmp].level - ident.currentLevel),
 					   ident.id[tmp].addr);
@@ -261,6 +286,8 @@ void Parse::stmts()
 		if (ident.id[look->GetLexeme()].kind != PROC)
 			printError(15, (*look).GetLine());
 		tmp = look->GetLexeme();
+            ParseTreeNode* callNode = new ParseTreeNode("Call", tmp);
+            parent->children.push_back(callNode);
 		icode.emitCode(CAL,
 					   abs(ident.id[tmp].level - ident.currentLevel),
 					   ident.id[tmp].addr);
@@ -268,8 +295,10 @@ void Parse::stmts()
 	}
 	case BEGINSYM://begin
 	{
+		ParseTreeNode *beginNode = new ParseTreeNode("Begin", "");
+            parent->children.push_back(beginNode);
 		while (true){
-			stmts();
+			stmts(beginNode);
 			move();
 			if (look->GetTag() != ENDSYM && look->GetTag() != SEMICOLOMSYM)
 				printError(5, look->GetLine());
@@ -282,14 +311,16 @@ void Parse::stmts()
 	}
 	case IFSYM://if
 	{
-		cond();
+		ParseTreeNode* ifNode = new ParseTreeNode("If", "");
+            parent->children.push_back(ifNode);
+            cond(ifNode);
 
 		move();
 		if (look->GetTag() != THENSYM)
 			printError(16, look->GetLine());
 		tmpIfAdrr1 = icode.size();
 		icode.emitCode(JPC, 0, 0);
-		stmts();
+		stmts(ifNode);
 		tmpIfAdrr2 = icode.size();
 		icode.emitCode(JMP, 0, 0);
 		icode.changeAdrr(tmpIfAdrr1, icode.size());
@@ -298,21 +329,27 @@ void Parse::stmts()
 		if (look->GetTag() != ELSESYM)
 			lex.PutToken(look);
 		else
-			stmts();
+		{
+			ParseTreeNode* elseNode = new ParseTreeNode("Else", "");
+                ifNode->children.push_back(elseNode);
+                stmts(elseNode);
+		}
 		icode.changeAdrr(tmpIfAdrr2, icode.size());
 		break;
 	}
 	case WHILESYM://while
 	{
+		ParseTreeNode* whileNode = new ParseTreeNode("While", "");
+            parent->children.push_back(whileNode);
 		tmpWhileAdrr1 = icode.size();
-		cond();
+		cond(whileNode);
 		tmpWhileAdrr2 = icode.size();
 		
 		move();
 		icode.emitCode(JPC, 0, 0);
 		if (look->GetTag() != DOSYM)
 			printError(18, look->GetLine());
-		stmts();
+		stmts(whileNode);
 		icode.emitCode(JMP, 0, tmpWhileAdrr1);
 		icode.changeAdrr(tmpWhileAdrr2, icode.size());
 		break;
@@ -328,6 +365,8 @@ void Parse::stmts()
 			printError(35, look->GetLine());
 		icode.emitCode(SIO_IN, 0, 2);
 		tmp = look->GetLexeme();
+		ParseTreeNode* readNode = new ParseTreeNode("Read", tmp);
+            parent->children.push_back(readNode);
 		icode.emitCode(STO,
 					   abs(ident.id[tmp].level - ident.currentLevel),
 					   ident.id[tmp].addr);
@@ -335,26 +374,32 @@ void Parse::stmts()
 	}
 	case WRITESYM://write
 	{
-		expr();
+		ParseTreeNode* writeNode = new ParseTreeNode("Write", "");
+            parent->children.push_back(writeNode);
+            expr(writeNode);
 		icode.emitCode(SIO_OUT, 0, 1);
 		break;
+	}
 	default:
+	{
 		lex.PutToken(look);
 		break;
 	}
 	}
 }
 
-void Parse::cond()
+void Parse::cond(ParseTreeNode* parent)
 {
+	ParseTreeNode* condNode = new ParseTreeNode("Condition", "");
+    parent->children.push_back(condNode);
 	move();
 	if (look->GetTag() != ODDSYM){
 		lex.PutToken(look);
-		expr();
+		expr(condNode);
 
 		move();
 		auto tmp = look->GetTag();
-		expr();
+		expr(condNode);
 		switch (tmp) {
 		case EQLSYM:
 			icode.emitCode(OPR, 0, OPR_EQL);
@@ -379,12 +424,14 @@ void Parse::cond()
 			break;
 		}
 	} else {
-		expr();
+		expr(condNode);
 	}
 }
 
-void Parse::expr()
+void Parse::expr(ParseTreeNode* parent)
 {
+	ParseTreeNode* exprNode = new ParseTreeNode("Expression", "");
+    parent->children.push_back(exprNode);
 	int op;
 	move();
 	if (look->GetTag() == MINUSYM)
@@ -392,7 +439,7 @@ void Parse::expr()
 	if (look->GetTag() != PLUSSYM && 
 		look->GetTag() != MINUSYM)
 			lex.PutToken(look);
-	term();
+	term(exprNode);
 	while (true){
 		move();
 		if (look->GetTag() == PLUSSYM ||
@@ -402,7 +449,7 @@ void Parse::expr()
 			lex.PutToken(look);
 			break;
 		}
-		term();
+		term(exprNode);
 		if (op == PLUSSYM)
 			icode.emitCode(OPR, 0, OPR_ADD);
 		if (op == MINUSYM)
@@ -410,10 +457,12 @@ void Parse::expr()
 	}
 }
 
-void Parse::term()
+void Parse::term(ParseTreeNode* parent)
 {
+	ParseTreeNode* termNode = new ParseTreeNode("Term", "");
+    parent->children.push_back(termNode);
 	int op;
-	factor();
+	factor(termNode);
 	while (true){
 		move();
 		if (look->GetTag() == MULSYM ||
@@ -423,7 +472,7 @@ void Parse::term()
 			lex.PutToken(look);
 			break;
 		}
-		factor();
+		factor(termNode);
 		if (op == MULSYM)
 			icode.emitCode(OPR, 0, OPR_MUL);
 		if (op == SLASHSYM)
@@ -431,11 +480,13 @@ void Parse::term()
 	}
 }
 
-void Parse::factor()
+void Parse::factor(ParseTreeNode* parent)
 {
+	ParseTreeNode *factorNode = new ParseTreeNode("Factor", "");
+    parent->children.push_back(factorNode);
 	move();
 	if (look->GetTag() == LPARENTSYM){
-		expr();
+		expr(factorNode);
 		move();
 		if (look->GetTag() != RPARENTSYM)
 			printError(22, look->GetLine());
@@ -443,6 +494,7 @@ void Parse::factor()
 		if (look->GetTag() != IDENTSYM && look->GetTag() != NUMBERSYM)
 			printError(23, look->GetLine());
 	}
+	std::string tmp = look->GetLexeme();
 	if (look->GetTag() == IDENTSYM && ident.id[look->GetLexeme()].kind == CONST)
 		icode.emitCode(LIT, 0, ident.id[look->GetLexeme()].value);
 	if (look->GetTag() == IDENTSYM && ident.id[look->GetLexeme()].kind == VAR)
@@ -454,7 +506,7 @@ void Parse::factor()
 		move();
 		if (look->GetTag() == LPARENTSYM)
 		{
-			expr();
+			expr(factorNode);
 			move();
 			if (look->GetTag() != RPARENTSYM)
 				printError(22, look->GetLine());
@@ -468,21 +520,5 @@ void Parse::factor()
 		
 	if (look->GetTag() == NUMBERSYM)
 		icode.emitCode(LIT,0,atoi(look->GetLexeme().c_str()));
+	factorNode->value =tmp;
 }
-
-
-
-void Parse::arry() {
-			if (look->GetTag() == LPARENTSYM) {
-				move();
-				if (look->GetTag() == NUMBERSYM || look->GetTag() == IDENTSYM) {
-					move();
-					if(look->GetTag() == RPARENTSYM)
-						move();
-					else
-						printError(22, look->GetLine());
-				} else {
-					printError(2, look->GetLine());
-				}
-			}
-		}

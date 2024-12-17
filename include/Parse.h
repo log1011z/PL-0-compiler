@@ -21,9 +21,9 @@ public:
     void decls(ParseTreeNode* parent);
     void stmts(ParseTreeNode* parent);
     void cond(ParseTreeNode* parent);
-    void expr(ParseTreeNode *parent);
-    void term(ParseTreeNode *parent);
-    void factor(ParseTreeNode *parent);
+    int expr(ParseTreeNode *parent);
+    int term(ParseTreeNode *parent);
+    int factor(ParseTreeNode *parent);
 	void GrammerAnalyzier();
 	void PrintTemineCode();
 	int getArrayValue(std::string, int);

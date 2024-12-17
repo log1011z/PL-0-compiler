@@ -35,7 +35,7 @@ void Parse::GrammerAnalyzier()
 	root = new ParseTreeNode("Program", "");
 	program(root);
 	printSymbolTable();
-	//icode.printCode();
+	icode.printCode();
 	//std::cout << "Over!" << std::endl;
 }
 
@@ -121,7 +121,7 @@ void Parse::block(ParseTreeNode* parent)
     ParseTreeNode* stmtsNode = new ParseTreeNode("Statements", "");
     parent->children.push_back(declsNode);
     parent->children.push_back(stmtsNode);
-	ident.currM[ident.currentLevel] += 3;
+	ident.currM[ident.currentLevel] += 3;//存放控制信息
 	icode.emitCode(INC, 0, 3);
 	decls(declsNode);
 	stmts(stmtsNode);
@@ -291,6 +291,8 @@ void Parse::stmts(ParseTreeNode* parent)
 		ParseTreeNode* assignNode = new ParseTreeNode("Assign", "");
             parent->children.push_back(assignNode);
 		if (ident.id.find(look->GetLexeme()) == ident.id.end())
+			printError(11, look->GetLine());
+		if(ident.id[look->GetLexeme()].level > ident.currentLevel)
 			printError(11, look->GetLine());
 		if (ident.id[look->GetLexeme()].kind != VAR&&ident.id[look->GetLexeme()].kind != ARRAY)
 			printError(12, look->GetLine());

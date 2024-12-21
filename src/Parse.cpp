@@ -12,7 +12,7 @@ Parse::Parse() :look(0){}
 Parse::Parse(std::string FileName) :lex(FileName), look(0),root(nullptr)
 {
 	lex.Tokenizer();
-	//lex.PrintList();
+	lex.PrintList();
 }
 
 Parse::~Parse(){
@@ -34,7 +34,7 @@ void Parse::GrammerAnalyzier()
 	lex.JudgeError();
 	root = new ParseTreeNode("Program", "");
 	program(root);
-	//printSymbolTable();
+	printSymbolTable();
 	icode.printCode();
 	//std::cout << "Over!" << std::endl;
 }

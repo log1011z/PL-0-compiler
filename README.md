@@ -1,32 +1,36 @@
 # pl0-compiler
-> This is a compiler for pl0 programming language writen in C++
+> This is a compiler for pl0 programming language writen in C++.
 
-## Introduction of pl0
-> pl0 is similar to but much simpler than the general-purpose programming language Pascal,intend as an educational programming language.
-> It serves as an example of how to construct a compiler.
+## What I Do
+>Add annotations and array identification
+Syntax tree presentation
 
 ### Grammer
 ```
-program = block "." .
+program ::= block "." .
+block ::= constPart varPart procPart statement .
+constPart ::= ["const" ident "=" number {"," ident "=" number} ";"] .
+varPart ::= ["var" identdec {"," identdec} ";"] .
+procPart ::= {"procedure" ident ";" block ";"} .
+identdec ::= ident idrange .
+idrange ::= "(" range ":" range ")" | ε .
+range ::= ident | number .
+statement ::= assignStmt | callStmt | readStmt | writeStmt | compoundStmt | ifStmt | whileStmt | ε .
+assignStmt ::= identuse ":=" expression .
+callStmt ::= "call" identuse .
+readStmt ::= "read" "(" identuse {"," identuse} ")" .
+writeStmt ::= "write" "(" expression {"," expression} ")" .
+compoundStmt ::= "begin" statement {";" statement} "end" .
+ifStmt ::= "if" condition "then" statement [else statement] .
+whileStmt ::= "while" condition "do" statement .
+condition ::= "odd" expression | expression relOp expression .
+relOp ::= "=" | "#" | "<" | "<=" | ">" | ">=" .
+expression ::= ["+"|"-"] term { ("+"|"-") term } .
+term ::= factor {("*"|"/") factor} .
+factor ::= identuse | number | "(" expression ")" .
+identuse ::= ident idadd .
+idadd ::= "(" expression ")" | ε .
 
-block = [ "const" ident "=" number {"," ident "=" number} ";"]
-        [ "var" ident {"," ident} ";"]
-        { "procedure" ident ";" block ";" } statement .
-
-statement = [ ident ":=" expression | "call" ident 
-              | "?" ident | "!" expression 
-              | "begin" statement {";" statement } "end" 
-              | "if" condition "then" statement 
-              | "while" condition "do" statement ].
-
-condition = "odd" expression |
-            expression ("="|"#"|"<"|"<="|">"|">=") expression .
-
-expression = [ "+"|"-"] term { ("+"|"-") term}.
-
-term = factor {("*"|"/") factor}.
-
-factor = ident | number | "(" expression ")".
 ```
 
 ## Usage
